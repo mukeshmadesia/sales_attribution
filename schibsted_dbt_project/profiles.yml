@@ -1,0 +1,6 @@
+schibsted_dbt_project:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../schibsted.duckdb  # Provide the absolute or relative path here

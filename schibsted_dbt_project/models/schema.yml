@@ -1,0 +1,539 @@
+version: 2
+
+models:
+  - name: raw_dsp
+    description: "This table contains DSP ad impression data ingested from Parquet files."
+    columns:
+      - name: ad_id
+        description: "Unique identifier for the ad."
+
+      - name: brand
+        description: "Brand associated with the advertisement product."
+
+      - name: product_id
+        description: "Product identifier linked to the ad."
+
+      - name: timestamp
+        description: "Timestamp of the ad impression."
+
+      - name: impressions
+        description: "Number of times the ad was shown."
+
+      - name: clicks
+        description: "Number of times the ad was clicked."
+
+      - name: filename
+        description: "Name of the source Parquet file from which the data was loaded."
+        tests:
+          - not_null
+
+      - name: ingestion_timestamp
+        description: "Timestamp when the data was ingested into the warehouse."
+        tests:
+          - not_null
+
+      - name: part_created
+        description: "Partition date indicating when the data was created."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: date
+
+  - name: staging_dsp
+    description: "Staging DSP advertisement data. This is incremental model with append strategy"
+    columns:
+      - name: advertisement_id
+        description: "Unique identifier for the advertisement."
+
+      - name: brand
+        description: "Brand associated with the advertisement (converted to lowercase)."
+
+      - name: product_id
+        description: "Product identifier linked to the advertisement."
+
+      - name: advertisement_timestamp
+        description: "Timestamp of when the ad was shown."
+
+      - name: advertisment_impression
+        description: "Number of times the ad was displayed."
+
+      - name: user_clicks_on_ad
+        description: "Number of times users clicked on the ad."
+
+      - name: source_filename
+        description: "Name of the source file from which the data was loaded."
+        tests:
+          - not_null
+
+      - name: ingestion_timestamp
+        description: "Timestamp when the data was ingested into the warehouse."
+        tests:
+          - not_null
+
+      - name: part_created
+        description: "Partition date indicating when the data was created."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: date
+
+  - name: final_dsp
+    description: "Final cleaned and deduplicated DSP advertisement data."
+    columns:
+      - name: advertisement_id
+        description: "Unique identifier for the advertisement."
+        tests:
+          - not_null
+          - unique
+
+      - name: brand
+        description: "Brand associated with the advertisement."
+        tests:
+          - not_null
+
+      - name: product_id
+        description: "Product identifier linked to the advertisement."
+        tests:
+          - not_null
+
+      - name: advertisement_timestamp
+        description: "Timestamp of when the ad was displayed."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: timestamp
+
+      - name: advertisment_impression
+        description: "Number of times the ad was displayed."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+
+      - name: user_clicks_on_ad
+        description: "Number of times users clicked on the ad."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: integer
+
+      - name: click_through_rate
+        description: "CTR = Clicks / Impressions (defaulting to 0 if impressions are 0)."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1
+
+      - name: source_filename
+        description: "Name of the source file from which the data was loaded."
+        tests:
+          - not_null
+
+      - name: ingestion_timestamp
+        description: "Timestamp when the data was ingested into the warehouse."
+        tests:
+          - not_null
+
+      - name: part_created
+        description: "Partition date indicating when the data was created."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: date
+
+  - name: raw_sales
+    description: "Processed sales data including transactions, products, and revenue details."
+    columns:
+      - name: transaction_id
+        description: "Unique identifier for each transaction."
+
+      - name: product_id
+        description: "Identifier for the product involved in the transaction."
+
+      - name: rep_id
+        description: "Sales representative responsible for the transaction."
+
+      - name: transaction_date
+        description: "Date when the transaction occurred."
+
+      - name: revenue
+        description: "Total revenue generated from the transaction."
+
+      - name: filename
+        description: "Name of the source file from which the data was loaded."
+        tests:
+          - not_null
+
+      - name: ingestion_timestamp
+        description: "Timestamp when the data was ingested into the warehouse."
+        tests:
+          - not_null
+
+      - name: part_created
+        description: "Partition date indicating when the data was created."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: date
+
+  - name: staging_sales
+    description: "Staging model for sales transactions, filtering duplicate sales entries based on the most recent ingestion timestamp."
+    columns:
+      - name: sales_transaction_id
+        description: "Unique identifier for each sales transaction."
+
+      - name: product_id
+        description: "Identifier for the product involved in the transaction."
+
+      - name: sales_representative_id
+        description: "ID of the sales representative who handled the transaction."
+
+      - name: sales_transaction_date
+        description: "Date when the sales transaction occurred."
+
+      - name: revenue_per_sales
+        description: "Revenue generated from the sales transaction."
+
+      - name: source_filename
+        description: "Name of the source file from which the data was loaded."
+        tests:
+          - not_null
+
+      - name: ingestion_timestamp
+        description: "Timestamp when the data was ingested into the warehouse."
+        tests:
+          - not_null
+
+      - name: part_created
+        description: "Partition date indicating when the data was created."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: date
+
+  - name: final_sales
+    description: "Cleaned and deduplicated sales transactions, including revenue and temporal information for analysis."
+    columns:
+      - name: sales_transaction_id
+        description: "Unique identifier for each sales transaction."
+        tests:
+          - unique
+          - not_null
+
+      - name: product_id
+        description: "Identifier for the product involved in the transaction."
+        tests:
+          - not_null
+
+      - name: sales_representative_id
+        description: "Sales representative ID."
+        tests:
+          - not_null
+
+      - name: sales_transaction_date
+        description: "Date of the sales transaction."
+        tests:
+          - not_null
+
+      - name: sales_year
+        description: "Year when the sales transaction occurred."
+        tests:
+          - not_null
+
+      - name: sales_month
+        description: "Month when the sales transaction occurred."
+        tests:
+          - not_null
+
+      - name: revenue_per_sales
+        description: "Revenue generated from the sales transaction."
+        tests:
+          - not_null
+
+      - name: ingestion_timestamp
+        description: "Timestamp when the data was ingested."
+        tests:
+          - not_null
+
+      - name: part_created
+        description: "Partition identifier for tracking ingestion runs."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: date
+
+  - name: raw_sales_representative
+    description: "Raw data from the sales representatives dataset before any transformations."
+    columns:
+      - name: rep_id
+        description: "Unique identifier for each sales representative."
+
+      - name: rep_name
+        description: "Name of the sales representative."
+
+      - name: team
+        description: "Team to which the sales representative belongs."
+
+      - name: region
+        description: "Region where the sales representative operates."
+        
+      - name: start_date
+        description: "Start date when the sales representative joined the company."
+
+      - name: end_date
+        description: "End date when the sales representative left the company (if applicable)."
+
+      - name: filename
+        description: "Name of the source file from which the data was loaded."
+        tests:
+          - not_null
+
+      - name: ingestion_timestamp
+        description: "Timestamp when the data was ingested into the warehouse."
+        tests:
+          - not_null
+
+      - name: part_created
+        description: "Partition date indicating when the data was created."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: date
+
+  - name: staging_sales_representative
+    description: "Staging model for sales representatives, processing the raw data with necessary transformations."
+    columns:
+      - name: sales_representative_id
+        description: "Unique identifier for each sales representative."
+
+      - name: sales_representative_name
+        description: "Name of the sales representative."
+
+      - name: sales_representative_team
+        description: "Team to which the sales representative belongs."
+
+      - name: sales_representative_region
+        description: "Region where the sales representative operates."
+
+      - name: sales_rep_start_date
+        description: "Start date when the sales representative joined the company."
+
+      - name: sales_rep_end_date
+        description: "End date when the sales representative left the company (if applicable)."
+
+      - name: source_filename
+        description: "Filename from which the sales representative data was ingested."
+        tests:
+          - not_null
+
+      - name: ingestion_timestamp
+        description: "Timestamp when the data was ingested into the data warehouse."
+        tests:
+          - not_null
+
+      - name: part_created
+        description: "Partition identifier for tracking ingestion runs."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: date
+
+  - name: final_sales_representative
+    description: "Final model for sales representatives, determining if there are overlapping team assignments and cleaning up the data."
+    columns:
+      - name: sales_representative_id
+        description: "Unique identifier for each sales representative."
+        tests:
+          - unique
+          - not_null
+
+      - name: sales_representative_name
+        description: "Name of the sales representative."
+        tests:
+          - not_null
+
+      - name: sales_representative_team
+        description: "Team to which the sales representative belongs."
+        tests:
+          - not_null
+
+      - name: sales_representative_region
+        description: "Region where the sales representative operates."
+        tests:
+          - not_null
+
+      - name: sales_rep_start_date
+        description: "Start date when the sales representative joined the company."
+        tests:
+          - not_null
+
+      - name: sales_rep_end_date
+        description: "End date when the sales representative left the company (if applicable)."
+
+      - name: is_team_overlapping
+        description: "Indicates if there is an overlap in team assignments based on the sales rep's start date."
+        tests:
+          - not_null
+
+      - name: ingestion_timestamp
+        description: "Timestamp when the data was ingested into the data warehouse."
+        tests:
+          - not_null
+
+  - name: revenue_by_sales_rep_with_yoy_growth
+    description: "Calculates year-over-year (YoY) revenue growth for each sales representative."
+    columns:
+      - name: sales_representative_id
+        description: "Unique identifier for the sales representative."
+        tests:
+          - not_null
+
+      - name: sales_year
+        description: "The year in which the sales occurred."
+        tests:
+          - not_null
+
+      - name: total_revenue_by_sales_rep
+        description: "Total revenue generated by the sales representative in a given year."
+        tests:
+          - not_null
+
+      - name: prev_year_revenue_by_sales_rep
+        description: "Revenue generated by the sales representative in the previous year."
+
+      - name: yoy_growth_percentage
+        description: "Year-over-year percentage growth in revenue for the sales representative."
+        tests:
+          - accepted_values:
+              values: "{{ range(-100, 100) }}"  # Ensures reasonable growth range
+
+  - name: revenue_per_product_with_yoy_growth
+    description: "Calculates year-over-year (YoY) revenue growth for each product."
+    columns:
+      - name: product_id
+        description: "Unique identifier for the product."
+        tests:
+          - not_null
+
+      - name: sales_year
+        description: "The year in which the sales occurred."
+        tests:
+          - not_null
+
+      - name: total_revenue_per_product
+        description: "Total revenue generated by the product in a given year."
+        tests:
+          - not_null
+
+      - name: prev_year_revenue
+        description: "Revenue generated by the product in the previous year."
+
+      - name: yoy_growth_percentage
+        description: "Year-over-year percentage growth in revenue for the product."
+        tests:
+          - accepted_values:
+              values: "{{ range(-100, 100) }}"  # Ensures reasonable growth range
+
+  - name: ad_impact_on_sales
+    description: "Analyzes the relationship between ad performance and sales transactions."
+    columns:
+      - name: product_id
+        description: "Unique identifier for the product."
+        tests:
+          - not_null
+
+      - name: sales_transaction_date
+        description: "The date of the sales transaction."
+        tests:
+          - not_null
+
+      - name: sales_representative_id
+        description: "Unique identifier for the sales representative."
+
+      - name: revenue_per_sales
+        description: "Revenue generated per sales transaction."
+        tests:
+          - not_null
+
+      - name: total_impressions
+        description: "Total number of times the advertisement was displayed."
+        tests:
+          - not_null
+
+      - name: total_clicks
+        description: "Total number of clicks received on the advertisement."
+
+      - name: click_through_rate
+        description: "Ratio of clicks to impressions (CTR)."
+
+      - name: total_revenue
+        description: "Total revenue generated for the product on the given sales transaction date."
+
+      - name: impressions_on_sales_day
+        description: "Total impressions for the product on the day of the sales transaction."
+
+  - name: sales_attribution
+    description: "Tracks the relationship between advertisements and sales transactions, identifying first-touch and last-touch attribution."
+    columns:
+      - name: sales_transaction_id
+        description: "Unique identifier for the sales transaction."
+        tests:
+          - not_null
+
+      - name: product_id
+        description: "Identifier for the product."
+        tests:
+          - not_null
+
+      - name: sales_transaction_date
+        description: "Date when the sale occurred."
+        tests:
+          - not_null
+
+      - name: revenue_per_sales
+        description: "Revenue generated per sale."
+        tests:
+          - not_null
+
+      - name: advertisement_id
+        description: "Unique identifier for the advertisement."
+
+      - name: advertisment_impression
+        description: "Number of times the advertisement was shown."
+
+
+      - name: user_clicks_on_ad
+        description: "Number of user clicks on the advertisement."
+
+      - name: sales_representative_id
+        description: "Unique identifier for the sales representative."
+        tests:
+          - not_null
+
+      - name: sales_representative_name
+        description: "Name of the sales representative."
+
+      - name: click_through_rate
+        description: "Calculated as user_clicks_on_ad / advertisment_impression."
+
+      - name: first_touch
+        description: "Rank indicating the first ad exposure before a sale."
+
+      - name: last_touch
+        description: "Rank indicating the last ad exposure before a sale."
+
+seeds:
+  - name: product_brand_mapping
+    description: "Mapping between product IDs and their corresponding brands."
+    columns:
+      - name: product_id
+        description: "Unique identifier for each product."
+        tests:
+          - unique
+          - not_null
+
+      - name: brand
+        description: "The brand associated with the product."
+        tests:
+          - not_null
