@@ -1,0 +1,30 @@
+input_files:
+  crm_data_long: "source_data/crm_data_long.csv"
+  dsp_data_long: "source_data/dsp_data_long.csv"
+  sales_data_long: "source_data/sales_data_long.csv"
+
+output_base_path: "landing_place/"
+
+expected_schema:
+  crm_data_long:
+    columns:
+      rep_id: "Utf8"
+      rep_name: "Utf8"
+      team: "Utf8"
+      region: "Utf8"
+
+  dsp_data_long:
+    columns:
+      ad_id: "Utf8"
+      brand: "Utf8"
+      timestamp: "Utf8"
+      impressions: "Int64"
+      clicks: "Int64"
+
+  sales_data_long:
+    columns:
+      transaction_id: "Utf8"
+      product_id: "Utf8"
+      rep_id: "Utf8"
+      date: "Utf8"
+      revenue: "Float64"

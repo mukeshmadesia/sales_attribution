@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "sales-attribution"
+version = "0.1.0"
+description = "To load sales attribution data"
+authors = ["Mukesh Madesia <avtar.mukesh@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+duckdb = "^1.2.1"
+dbt-duckdb = "^1.9.2"
+polars = "^1.24.0"
+pyyaml = "^6.0.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
