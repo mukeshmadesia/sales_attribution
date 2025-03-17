@@ -343,9 +343,8 @@ models:
     description: "Final model for sales representatives, determining if there are overlapping team assignments and cleaning up the data."
     columns:
       - name: sales_representative_id
-        description: "Unique identifier for each sales representative."
+        description: "Unique identifier for each sales representative. In table there can multiple records for same representative"
         tests:
-          - unique
           - not_null
 
       - name: sales_representative_name
@@ -380,6 +379,12 @@ models:
         description: "Timestamp when the data was ingested into the data warehouse."
         tests:
           - not_null
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: 
+            - sales_representative_id
+            - sales_rep_start_date
 
   - name: revenue_by_sales_rep_with_yoy_growth
     description: "Calculates year-over-year (YoY) revenue growth for each sales representative."

@@ -10,6 +10,7 @@
 4. profiles.yml - contains database details, update if required
 5. Test setup with `dbt debug`command
 6. Source data to be placed in `source_data` path 
+7. dbt deps for dbt dependencies(at schibsted_dbt_project)
 
 ## Project Structure
 
@@ -52,7 +53,7 @@ Static data -  brand and product mapping csv file
 ### Models
 
 Each folder corresponds to each schema
-### Raw  
+#### Raw  
 - This stage is to maintain all data 
 - Add audit colums for each row
     - Part_created
@@ -61,18 +62,19 @@ Each folder corresponds to each schema
 - Any null/invalid value will be handled at further stage
 - To handle the error scenario gracefully, we will later check the data type and values
 
-### Staging
+#### Staging
 - This is an incremental model with Append strategy to keep the historical state of data for future reference
     - E.g. If there is any change in represenatative or revenue amount for given Sales transaction, in staging table we will have both the datapoints to refer where as at later final stage we wil have only latest datapoint
 - Data type - Conversion using (TRY_CAST) so that invalid values are converted to NULL
 - Column name changes
 
-### Final
+#### Final
 - This is incremental model with "delete+insert" strategy to update the existing records with latest data, this allows to handle any update in historical records
 - E.g. If there is any change in represenatative or revenue amount for given Sales transaction, then Final will contain the latest data where as at staging table we will have both the datapoints to refer 
 - Validation for Not NULL and Invalid data types
 
-### Analytics 
+
+#### Analytics 
 
 - This is table Model used for reporting using final tables.
 - Optimized by clustering as per Reporting needs
@@ -98,6 +100,7 @@ cd schibsted_dbt_project
 
 ```console 
 dbt debug  # To connect and check connection
+dbt deps  # To install dbt dependencies
 dbt seed  # To create table from seed file
 dbt build  # To run and test models
 dbt run --select raw_sales # To run specific model
